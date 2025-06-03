@@ -22,11 +22,14 @@ class SolanaWalletMonitor:
         self.logs_subscriber = SolanaLogsSubscriber(network)
         self.details_fetcher = SolanaTransactionDetailsFetcher(network)
         
+        # Add duplicate tracking - tự động clear
+        self.processed_signatures = set()
+        self.duplicate_count = 0
+        
         print(f"\nSOLANA WALLET MONITOR INITIALIZED")
         print("=" * 50)
         print(f"→ Network: {network}")
-        print(f"→ Step 1: WebSocket logs subscriber ready")
-        print(f"→ Step 2: Transaction details fetcher ready")
+        print(f"→ Duplicate prevention: Active")
     
     # Phương thức để kết nối WebSocket (HTTP không cần kết nối)
     async def connect(self):
@@ -67,28 +70,32 @@ class SolanaWalletMonitor:
                 data = json.loads(message)
                 
                 if "method" in data and data["method"] == "logsNotification":
-                    transaction_count += 1
-                    
-                    print(f"\n{'='*60}")
-                    print(f"TRANSACTION #{transaction_count} DETECTED")
-                    print(f"{'='*60}")
-                    
                     # Extract signature from logs
                     result = data["params"]["result"]
                     signature = result["value"]["signature"]
-                    logs = result["value"]["logs"]
                     
-                    print(f"STEP 1 → Signature extracted: {signature[:20]}...")
-                    print(f"STEP 1 → Logs count: {len(logs)}")
+                    # Âm thầm check và skip duplicate
+                    if signature in self.processed_signatures:
+                        self.duplicate_count += 1
+                        continue
+                    
+                    # Add to processed set
+                    self.processed_signatures.add(signature)
+                    transaction_count += 1
+                    
+                    print(f"\n{'='*60}")
+                    print(f"NEW TRANSACTION #{transaction_count}")
+                    print(f"{'='*60}")
+                    print(f"Signature: {signature[:30]}...")
                     
                     # Step 2: Get detailed transaction info
                     details = await self.details_fetcher.get_transaction_details(signature)
                     
                     if details:
-                        print(f"\nSTEP 2 → Transaction details retrieved!")
+                        print(f"Transaction details retrieved!")
                         self._display_transaction_summary(details, transaction_count)
                     else:
-                        print(f"\nSTEP 2 → Failed to get transaction details")
+                        print(f"Failed to get transaction details")
                     
                     print(f"{'='*60}")
                     
@@ -100,10 +107,27 @@ class SolanaWalletMonitor:
                 break
         
         print(f"\nMONITORING COMPLETE!")
-        print(f"Total transactions analyzed: {transaction_count}")
+        print(f"Unique transactions processed: {transaction_count}")
+        if self.duplicate_count > 0:
+            print(f"Duplicate transactions skipped: {self.duplicate_count}")
         
         # Print statistics
         self.details_fetcher.print_statistics()
+    
+    def _print_monitoring_statistics(self):
+        """
+        In thống kê monitoring bao gồm duplicate tracking
+        """
+        total_received = len(self.processed_signatures) + self.duplicate_count
+        duplicate_rate = (self.duplicate_count / total_received * 100) if total_received > 0 else 0
+        
+        print(f"\nMONITORING STATISTICS")
+        print("=" * 25)
+        print(f"Total notifications: {total_received}")
+        print(f"Unique transactions: {len(self.processed_signatures)}")
+        print(f"Duplicates skipped: {self.duplicate_count}")
+        print(f"Duplicate rate: {duplicate_rate:.1f}%")
+        print(f"Memory usage: {len(self.processed_signatures)} signatures stored")
     
     def _display_transaction_summary(self, details: TransactionDetails, count: int):
         """

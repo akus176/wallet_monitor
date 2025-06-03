@@ -4,7 +4,7 @@ from wallet_monitor import SolanaWalletMonitor
 async def main():
     print("SOLANA WALLET TRANSACTION MONITOR")
     print("="*50)
-    print("Real-time monitoring với full transaction details")
+    print("Real-time monitoring với duplicate prevention")
     print("="*50)
     
     # Network selection
@@ -45,6 +45,8 @@ async def main():
         
     except KeyboardInterrupt:
         print("\nDừng monitoring bởi người dùng")
+        if monitor.duplicate_count > 0:
+            print(f"Đã bỏ qua {monitor.duplicate_count} duplicate transactions")
     except Exception as e:
         print(f"Lỗi: {e}")
     finally:

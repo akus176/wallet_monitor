@@ -73,7 +73,7 @@ class SolanaTransactionDetailsFetcher:
                 {
                     "encoding": "json",
                     "maxSupportedTransactionVersion": 0,
-                    "commitment": "processed", # Chỉ lấy giao dịch đã processed
+                    "commitment": "finalized"
                 }
             ]
         }
