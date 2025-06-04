@@ -63,7 +63,7 @@ class SolanaWalletMonitor:
         while transaction_count < max_transactions:
             try:
                 # Step 1: Wait for WebSocket notification
-                message = await asyncio.wait_for(self.logs_subscriber.websocket.recv(), timeout=120)
+                message = await asyncio.wait_for(self.logs_subscriber.websocket.recv(), timeout=1000)
                 data = json.loads(message)
                 
                 if "method" in data and data["method"] == "logsNotification":
@@ -93,7 +93,7 @@ class SolanaWalletMonitor:
                     print(f"{'='*60}")
                     
             except asyncio.TimeoutError:
-                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Timeout - No transactions in 2 minutes")
+                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Timeout")
                 break
             except Exception as e:
                 print(f"Error during monitoring: {e}")
