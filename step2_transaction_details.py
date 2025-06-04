@@ -19,7 +19,8 @@ class SolanaTransactionDetailsFetcher:
         self.network_endpoints = {
             "testnet": "https://api.testnet.solana.com",
             "mainnet": "https://api.mainnet-beta.solana.com",
-            "devnet": "https://api.devnet.solana.com"
+            "devnet": "https://api.devnet.solana.com",
+            "local": "http://localhost:8899"
         }
         
         if network not in self.network_endpoints:

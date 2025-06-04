@@ -20,12 +20,15 @@ class SolanaLogsSubscriber:
         elif network == "devnet":
             self.websocket_url = "wss://api.devnet.solana.com"
             self.http_rpc_url = "https://api.devnet.solana.com"
+        elif network == "local":
+            self.websocket_url = "ws://localhost:8900"
+            self.http_rpc_url = "http://localhost:8899"
         else:
-            raise ValueError("Network must be 'testnet', 'mainnet', or 'devnet'")
+            raise ValueError("Network must be 'testnet', 'mainnet', 'devnet' or 'local'")
         
-        self.network = network # Lựa chọn mạng lưới: testnet hoặc mainnet
-        self.websocket = None # Biến để lưu kết nối WebSocket
-        self.subscription_id = None # ID của subscription (nếu có)
+        self.network = network
+        self.websocket = None
+        self.subscription_id = None
         
         print(f"STEP 1: ĐĂNG KÝ WEBSOCKET LOGS")
         print(f"Network: {network}")
@@ -95,7 +98,7 @@ class SolanaLogsSubscriber:
         """
         print(f"\nBƯỚC 1C: LẮNG NGHE NOTIFICATIONS")
         print("-" * 40)
-        print(f"Số lượng notifications tối đa: {max_notifications}") # Giới hạn số lượng notifications để nhận
+        print(f"Số lượng notifications tối đa: {max_notifications}")
         print("Đang chờ logs...")
         
         notification_count = 0 # Biến đếm số lượng notifications đã nhận
@@ -103,7 +106,7 @@ class SolanaLogsSubscriber:
         # Lặp để nhận logs
         while notification_count < max_notifications:
             try:
-                message = await asyncio.wait_for(self.websocket.recv(), timeout=60)
+                message = await asyncio.wait_for(self.websocket.recv(), timeout=1000)
                 data = json.loads(message)
                 
                 if "method" in data and data["method"] == "logsNotification":
@@ -133,7 +136,7 @@ class SolanaLogsSubscriber:
                     print(f"Other message: {data.get('method', 'unknown')}")
                     
             except asyncio.TimeoutError:
-                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Timeout - No transactions in 60s")
+                print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Timeout - No transactions in 1000s")
                 break
             except Exception as e:
                 print(f"Error receiving message: {e}")

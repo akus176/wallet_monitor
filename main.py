@@ -12,8 +12,8 @@ async def main():
     print("1. Devnet")
     print("2. Testnet")
     print("3. Mainnet")
-    
-    network_choice = input("\nChọn network (1/2/3, mặc định 1-Devnet): ").strip()
+    print("4. Local")
+    network_choice = input("\nChọn network (1/2/3/4, mặc định 4-Local): ").strip()
     
     if network_choice == "2":
         network = "testnet"
@@ -21,10 +21,13 @@ async def main():
     elif network_choice == "3":
         network = "mainnet"
         print("Đã chọn Mainnet")
-    else:
+    elif network_choice == "1":
         network = "devnet"
         print("Đã chọn Devnet")
-    
+    else:
+        network = "local"
+        print("Đã chọn local")
+
     monitor = SolanaWalletMonitor(network)
     
     try:
